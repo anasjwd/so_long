@@ -1,0 +1,144 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   so_long.h                                          :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ajawad <marvin@42.fr>                      +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/03/03 12:03:29 by ajawad            #+#    #+#             */
+/*   Updated: 2024/03/03 12:03:31 by ajawad           ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#ifndef SO_LONG_H
+# define SO_LONG_H
+
+# include "get_next_line.h"
+# include "libft.h"
+# include <fcntl.h>
+# include <mlx.h>
+# include <stdio.h>
+# include <stdlib.h>
+# include <unistd.h>
+
+# define KEY_UP 13
+# define KEY_DOWN 1
+# define KEY_RIGHT 2
+# define KEY_LEFT 0
+# define ESCAPE 53
+
+# define RANDOM_MAX 32767
+# define RANDOM_A 1103515245
+# define RONDOM_C 12345
+
+typedef struct s_image
+{
+	void		*img;
+	char		*addr;
+	int			bits_per_pixel;
+	int			line_length;
+	int			endian;
+	int			width;
+	int			height;
+}				t_image;
+
+typedef struct s_player
+{
+	t_image		right[3];
+	t_image		left[3];
+	t_image		up[3];
+	t_image		down[3];
+	t_image		*image_ptr;
+	int			starting_pos[2];
+	int			target_pos[2];
+	int			x;
+	int			y;
+	int			dx;
+	int			dy;
+	int			next_dx;
+	int			next_dy;
+	void		(*mvmnt_direction)();
+	int			animation_frame_index;
+	int			animation_delay;
+	int			animation_end;
+	int			isdead;
+	int			player_starts_moving;
+	int			collected_fruits;
+}				t_player;
+
+typedef struct s_data
+{
+	void		*mlx;
+	void		*win;
+	char		**map;
+	int			map_fd;
+	size_t		width;
+	size_t		height;
+	int			num_of_fruits;
+	int			open_exit;
+	int			exit_position[2];
+	int			number_of_moves;
+	t_player	pacman;
+	t_image		collectibles[2];
+	t_image		exit[2];
+	t_image		wall;
+	t_image		ground;
+}				t_data;
+
+/*_______initializing the game_______*/
+void			initialize_game(t_data *game_data);
+/* >> parsing */
+void			parsing_map(t_data *game_data);
+void			check_map_is_valid(t_data *game_data);
+void			check_map_is_rectangle(t_data *game_data);
+void			check_elements(t_data *game_data);
+void			check_num_of_elements(char **map);
+void			check_map_surrounded_by_wall(t_data *game_data);
+void			check_valid_path_to_necessary_elements(t_data *game_data);
+void			flood_fill(char **map, int y, int x, char f);
+int				check_flood_fill(char **map);
+/* >> initialize the connection */
+void			initialize_mlx(t_data *game_data);
+/* >> load images */
+void			load_images(t_data *game_data);
+void			load_player_images(t_player *pacman, t_data *game_data);
+void			load_collectibles_and_exit_images(t_data *game_data);
+void			load_ground_and_wall_image(t_data *game_data);
+void			load_image(t_image *element, char *file_path,
+					t_data *game_data);
+/* >> draw the map */
+void			draw_map(t_data *game_data);
+void			draw_ground_and_walls(t_data *game_data);
+void			draw_collectibles_and_exit(t_data *game_data);
+void			draw_player(t_data *game_data);
+
+/*______________exit game______________*/
+void			exit_game(t_data *game_data, int flag);
+
+/*____________the game loop____________*/
+int				game_loop(t_data *game_data);
+/* >> process input */
+void			process_input(t_data *game_data);
+void			update_player_movement(t_data *game_data);
+void			update_fruit_collection_and_exit_status(t_data *game_data);
+void			change_player_position(t_data *game_data);
+void			get_mvmnt_direction_images(t_player *pacman);
+int				check_if_mvmnt_is_possible(int *initial_position, int x, int y,
+					t_data *game_data);
+/* >> update */
+void			update(t_data *game_data);
+/* >> render */
+void			render(t_data *game_data);
+
+/*_______________utils_______________*/
+void			get_element_coordinates(char **map, int *element_cordination,
+					char element);
+int				num_of_element(char **map, char element);
+char			**get_map(int map_fd);
+char			**get_map_copy(char **map, int height);
+void			dbl_free(char **ptr);
+unsigned int	random_number(void);
+int				check_element_is_valid(char c);
+void			print_num_of_movements(t_player *pacman, int *number_of_moves);
+
+#endif
